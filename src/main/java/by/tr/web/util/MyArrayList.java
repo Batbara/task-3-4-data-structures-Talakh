@@ -6,7 +6,7 @@ import by.tr.web.exception.WrongParameters;
 import java.io.Serializable;
 import java.util.Iterator;
 
-public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable, Iterable<E> {
+public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
     private int size;
     private int INITIAL_CAPACITY = 10;
     private Object[] array;
@@ -101,18 +101,14 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable, Itera
     }
 
     public boolean remove(Object o) {
-        if (o == null) {
-            for (int index = 0; index < size; index++)
-                if (array[index] == null) {
-                    removeFromArray(index);
-                    return true;
-                }
-        } else {
-            for (int index = 0; index < size; index++)
-                if (o.equals(array[index])) {
-                    removeFromArray(index);
-                    return true;
-                }
+        if (!contains(o)) {
+            return false;
+        }
+        for (int index = 0; index < size; index++) {
+            if (o.equals(array[index])) {
+                removeFromArray(index);
+                return true;
+            }
         }
         return false;
     }
@@ -210,7 +206,8 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable, Itera
         }
         return clone;
     }
-    private class IteratorImpl implements Iterator<E>{
+
+    private class IteratorImpl implements Iterator<E> {
         int current = 0;
         int size = MyArrayList.this.size;
 
@@ -228,6 +225,7 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable, Itera
             return null;
         }
     }
+
     private class MyArrayIter extends IteratorImpl implements MyIterator<E> {
 
         @Override

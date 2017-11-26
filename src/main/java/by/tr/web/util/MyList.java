@@ -2,9 +2,8 @@ package by.tr.web.util;
 
 import java.util.Iterator;
 
-public interface MyList<E> {
+public interface MyList<E> extends Iterable<E>{
 
-    Iterator<E> iterator();
     MyIterator<E> myListIterator();
     int size();
 

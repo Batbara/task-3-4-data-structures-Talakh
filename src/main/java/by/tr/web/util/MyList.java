@@ -1,7 +1,5 @@
 package by.tr.web.util;
 
-import java.util.Iterator;
-
 public interface MyList<E> extends Iterable<E>{
 
     MyIterator<E> myListIterator();

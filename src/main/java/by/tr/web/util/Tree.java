@@ -2,7 +2,7 @@ package by.tr.web.util;
 
 import java.util.Iterator;
 
-public interface Tree<E> extends Iterable<E>{
+public interface Tree<E> extends Iterable<E> {
     void setRoot(E root);
 
     MyList<E> getChildList(E node);
@@ -10,6 +10,7 @@ public interface Tree<E> extends Iterable<E>{
     MyList<E> toLevelOrderList();
 
     MyList<E> toLeftRightList();
+
     MyList<E> toRightLeftList();
 
 
@@ -18,6 +19,7 @@ public interface Tree<E> extends Iterable<E>{
     Iterator<E> rightLeftIterator();
 
     Iterator<E> leftRightIterator();
+
     Iterator<E> levelOrderIterator();
 
     boolean contains(E node);

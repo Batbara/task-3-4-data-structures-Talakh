@@ -2,11 +2,32 @@ package by.tr.web.util;
 
 import by.tr.web.exception.NoSuchElement;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
+public class BinarySearchTree<E extends Comparable<E>> implements Tree<E>, Serializable {
 
     private Node<E> root;
+
+    private static class Node<E extends Comparable<E>> {
+        Node<E> left;
+        Node<E> right;
+        E value;
+
+        Node(E value) {
+            left = null;
+            right = null;
+            this.value = value;
+        }
+    }
+
+    public BinarySearchTree() {
+        root = null;
+    }
+
+    public BinarySearchTree(E value) {
+        root = new Node<>(value);
+    }
 
     @Override
     public void setRoot(E root) {
@@ -38,10 +59,10 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
 
     private MyList<E> getLevelOrder() {
         MyList<E> list = new MyArrayList<>();
-        int h = height(root);
+        int rootHeight = height(root);
 
-        for (int i = 1; i <= h; i++) {
-            addNodesFromLevel(list, root, i);
+        for (int level = 1; level <= rootHeight; level++) {
+            addNodesFromLevel(list, root, level);
         }
         return list;
     }
@@ -66,9 +87,9 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
         int leftHeight = height(root.left);
         int rightHeight = height(root.right);
 
-        if (leftHeight > rightHeight)
+        if (leftHeight > rightHeight) {
             return (leftHeight + 1);
-        else return (rightHeight + 1);
+        } else return (rightHeight + 1);
     }
 
 
@@ -77,6 +98,16 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
         MyList<E> list = new MyArrayList<>();
         leftRightInorder(list, root);
         return list;
+    }
+
+    private void leftRightInorder(MyList<E> list, Node<E> node) {
+        if (node == null) {
+            return;
+        }
+
+        leftRightInorder(list, node.left);
+        list.add(node.value);
+        leftRightInorder(list, node.right);
     }
 
     @Override
@@ -97,20 +128,14 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
 
     }
 
-    private void leftRightInorder(MyList<E> list, Node<E> node) {
-        if (node == null) {
-            return;
-        }
-
-        leftRightInorder(list, node.left);
-        list.add(node.value);
-        leftRightInorder(list, node.right);
-    }
-
-
     @Override
     public MyList<E> toList() {
         return getLevelOrder();
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return levelOrderIterator();
     }
 
     @Override
@@ -155,19 +180,26 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
         return true;
     }
 
+    private void insert(Node<E> node, E value) {
+        if (isLess(value, node.value)) {
+            if (node.right != null) {
+                insert(node.right, value);
+            } else {
+                node.right = new Node<>(value);
+            }
+
+        } else {
+            if (node.left != null) {
+                insert(node.left, value);
+            } else {
+                node.left = new Node<>(value);
+            }
+        }
+    }
+
     @Override
     public boolean remove(E node) {
         return removeElement(node);
-    }
-
-    @Override
-    public void clear() {
-        clearNodes();
-    }
-
-    private void clearNodes() {
-        removeAll(root);
-        root=null;
     }
 
     private boolean removeElement(E key) {
@@ -175,35 +207,19 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
         return true;
     }
 
-    private Node<E> removeAll(Node<E> root) {
-        if (root == null) {
-            return null;
-        }
-        if (root.left != null) {
-            root.left = removeAll(root.left);
-        }
-        root.value = null;
-        if (root.right != null) {
-            root.right = removeAll(root.right);
-        }
-//        root.value = null;
-
-        return root;
-    }
-
     private Node<E> removeRecursive(Node<E> root, E value) {
         if (root == null) {
             return null;
         }
 
-        if (value.compareTo(root.value) < 0) {
+        if (isLess(value, root.value)) {
             root.left = removeRecursive(root.left, value);
-        } else if (value.compareTo(root.value) > 0) {
+        } else if (isGreater(value, root.value)) {
             root.right = removeRecursive(root.right, value);
         } else {
-            if (root.left == null) {
+            if (!hasLeftChild(root)) {
                 return root.right;
-            } else if (root.right == null) {
+            } else if (!hasRightChild(root)) {
                 return root.left;
             }
 
@@ -225,43 +241,40 @@ public class BinarySearchTree<E extends Comparable<E>> implements Tree<E> {
     }
 
     @Override
-    public Iterator<E> iterator() {
-        return levelOrderIterator();
-    }
-
-    private static class Node<E extends Comparable<E>> {
-        Node<E> left;
-        Node<E> right;
-        E value;
-
-        Node(E value) {
-            left = null;
-            right = null;
-            this.value = value;
-        }
-    }
-
-    public BinarySearchTree() {
+    public void clear() {
+        removeAll(root);
         root = null;
     }
 
-    public BinarySearchTree(E value) {
-        root = new Node<>(value);
+    private Node<E> removeAll(Node<E> root) {
+        if (root == null) {
+            return null;
+        }
+        if (root.left != null) {
+            root.left = removeAll(root.left);
+        }
+        if (root.right != null) {
+            root.right = removeAll(root.right);
+        }
+        root.value = null;
+
+        return root;
     }
 
-    private void insert(Node<E> node, E value) {
-        if (value.compareTo(node.value) <= 0) {
-            if (node.left != null) {
-                insert(node.left, value);
-            } else {
-                node.left = new Node<>(value);
-            }
-        } else {
-            if (node.right != null) {
-                insert(node.right, value);
-            } else {
-                node.right = new Node<>(value);
-            }
-        }
+    private boolean hasLeftChild(Node<E> node) {
+        return node.left != null;
     }
+
+    private boolean hasRightChild(Node<E> node) {
+        return node.right != null;
+    }
+
+    private boolean isGreater(E first, E second) {
+        return first.compareTo(second) > 0;
+    }
+
+    private boolean isLess(E first, E second) {
+        return first.compareTo(second) < 0;
+    }
+
 }

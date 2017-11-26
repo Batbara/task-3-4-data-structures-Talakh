@@ -1,10 +1,9 @@
 package by.tr.web.util;
 
-import java.util.Iterator;
-
-public interface MyList<E> extends Iterable<E>{
+public interface MyList<E> extends Iterable<E> {
 
     MyIterator<E> myListIterator();
+
     int size();
 
     boolean isEmpty();
@@ -16,6 +15,8 @@ public interface MyList<E> extends Iterable<E>{
     boolean add(int index, E element);
 
     boolean addAll(MyList<? extends E> list);
+
+    boolean addAll(E[] array);
 
     void clear();
 

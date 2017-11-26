@@ -1,12 +1,11 @@
 package by.tr.web.util;
 
-import by.tr.web.exception.UnexpectedError;
 import by.tr.web.exception.WrongParameters;
 
 import java.io.Serializable;
 import java.util.Iterator;
 
-public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
+public class MyArrayList<E> implements MyList<E>, Serializable {
     private int size;
     private int INITIAL_CAPACITY = 10;
     private Object[] array;
@@ -17,6 +16,11 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
     }
 
     public MyArrayList(MyList<? extends E> o) {
+        this();
+        this.addAll(o);
+    }
+
+    public MyArrayList(E[] o) {
         this();
         this.addAll(o);
     }
@@ -54,7 +58,7 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
     }
 
     public boolean add(E element) {
-        if (size >= INITIAL_CAPACITY) {
+        if (size >= array.length) {
             expandArrayTo(size + 1);
         }
         array[size] = element;
@@ -85,8 +89,19 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
     public boolean addAll(MyList<? extends E> list) {
         int extraSize = list.size();
         expandArrayTo(extraSize + size);
+
         Object[] extraArray = list.toArray();
         System.arraycopy(extraArray, 0, array, size, extraSize);
+        size += extraSize;
+        return true;
+    }
+
+    @Override
+    public boolean addAll(E[] array) {
+        int extraSize = array.length;
+        expandArrayTo(extraSize + size);
+
+        System.arraycopy(array, 0, this.array, size, extraSize);
         size += extraSize;
         return true;
     }
@@ -146,13 +161,12 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
 
     public int indexOf(Object o) {
         if (o == null) {
-            for (int i = 0; i < size; i++)
-                if (array[i] == null)
-                    return i;
-        } else {
-            for (int i = 0; i < size; i++)
-                if (o.equals(array[i]))
-                    return i;
+            return -1;
+        }
+        for (int i = 0; i < size; i++) {
+            if (o.equals(array[i])) {
+                return i;
+            }
         }
         return -1;
     }
@@ -182,29 +196,19 @@ public class MyArrayList<E> implements MyList<E>, Cloneable, Serializable {
     @Override
     public String toString() {
         if (size == 0) {
-            return "[]";
+            return Constant.EMPTY_LIST;
         }
         if (size == 1) {
-            return "[" + array[0] + "]";
+            return Constant.LIST_START + array[0] + Constant.LIST_END;
         }
-        StringBuilder builder = new StringBuilder("[");
+        StringBuilder builder = new StringBuilder(Constant.LIST_START);
         for (int i = 0; i < size - 1; i++) {
             builder.append(array[i].toString());
-            builder.append(", ");
+            builder.append(Constant.SEPARATOR);
         }
         builder.append(array[size - 1]);
-        builder.append("]");
+        builder.append(Constant.LIST_END);
         return builder.toString();
-    }
-
-    public MyArrayList clone() {
-        MyArrayList clone;
-        try {
-            clone = (MyArrayList) super.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new UnexpectedError(e);
-        }
-        return clone;
     }
 
     private class IteratorImpl implements Iterator<E> {

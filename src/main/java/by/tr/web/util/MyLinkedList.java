@@ -3,9 +3,10 @@ package by.tr.web.util;
 import by.tr.web.exception.NoSuchElement;
 import by.tr.web.exception.WrongParameters;
 
+import java.io.Serializable;
 import java.util.Iterator;
 
-public class MyLinkedList<E> implements MyList<E> {
+public class MyLinkedList<E> implements MyList<E>, Serializable {
     private int size;
     private Node<E> first;
     private Node<E> last;
@@ -37,43 +38,16 @@ public class MyLinkedList<E> implements MyList<E> {
         addAll(list);
     }
 
-   /* public E getFirst() {
-        if (first == null)
-            throw new NoSuchElement();
-        return first.element;
+    public MyLinkedList(E[] array) {
+        this();
+        addAll(array);
     }
-
-    public E getLast() {
-        if (last == null)
-            throw new NoSuchElement();
-        return last.element;
-    }*/
 
     @Override
     public MyIterator<E> myListIterator() {
         return new LinkedListIter<E>();
     }
 
-    private class LinkedListIter<E> extends IteratorImpl<E> implements MyIterator<E> {
-
-        LinkedListIter() {
-            super();
-        }
-
-        @Override
-        public boolean hasPrevious() {
-            return cursor != null && cursor.prev != null;
-        }
-
-        @Override
-        public E previous() {
-            if (hasPrevious()) {
-                E element = (E) cursor.element;
-                cursor = cursor.prev;
-                return element;
-            } else throw new NoSuchElement();
-        }
-    }
 
     @Override
     public int size() {
@@ -146,7 +120,50 @@ public class MyLinkedList<E> implements MyList<E> {
                 insertEnd(element);
             }
         }
+        return true;
+    }
+
+    @Override
+    public boolean addAll(E[] array) {
+        for (E element : array) {
+            if (first == null && last == null) {
+                addInitial(element);
+            } else {
+                insertEnd(element);
+            }
+        }
         return false;
+    }
+
+    private void insertBeginning(E e) {
+        Node<E> f = first;
+        Node<E> newNode = new Node<>(null, e, f);
+        first = newNode;
+        if (f != null) {
+            f.prev = newNode;
+        }
+        size++;
+    }
+
+    private void insertEnd(E e) {
+        Node<E> l = last;
+        Node<E> newNode = new Node<>(l, e, null);
+        last = newNode;
+        if (l != null) {
+            l.next = newNode;
+        }
+        size++;
+    }
+
+    private void insertTo(int index, E e) {
+        Node<E> pivot = getNode(index);
+        Node<E> pivotPrev = pivot.prev;
+
+        Node<E> newNode = new Node<>(pivotPrev, e, pivot);
+        pivotPrev.next = newNode;
+        pivot.prev = newNode;
+
+        size++;
     }
 
     @Override
@@ -176,7 +193,26 @@ public class MyLinkedList<E> implements MyList<E> {
             current = current.next;
         }
 
+        return false;
+    }
 
+    @Override
+    public E remove(int index) {
+        if (index < 0) {
+            throw new WrongParameters("Invalid index " + index);
+        }
+        Node<E> node = getNode(index);
+        E element = node.element;
+        unlink(node);
+        size--;
+        return element;
+    }
+
+    @Override
+    public boolean removeAll(MyList<? extends E> list) {
+        for (E element : list) {
+            remove(element);
+        }
         return true;
     }
 
@@ -217,26 +253,6 @@ public class MyLinkedList<E> implements MyList<E> {
         node.element = null;
         node.next = null;
         node.prev = null;
-    }
-
-    @Override
-    public E remove(int index) {
-        if (index < 0) {
-            throw new WrongParameters("Invalid index " + index);
-        }
-        Node<E> node = getNode(index);
-        E element = node.element;
-        unlink(node);
-        size--;
-        return element;
-    }
-
-    @Override
-    public boolean removeAll(MyList<? extends E> list) {
-        for (E element : list) {
-            remove(element);
-        }
-        return true;
     }
 
     @Override
@@ -310,43 +326,13 @@ public class MyLinkedList<E> implements MyList<E> {
         }
     }
 
-    private void insertBeginning(E e) {
-        Node<E> f = first;
-        Node<E> newNode = new Node<>(null, e, f);
-        first = newNode;
-        if (f != null) {
-            f.prev = newNode;
-        }
-        size++;
-    }
-
-    private void insertEnd(E e) {
-        Node<E> l = last;
-        Node<E> newNode = new Node<>(l, e, null);
-        last = newNode;
-        if (l != null) {
-            l.next = newNode;
-        }
-        size++;
-    }
-
-    private void insertTo(int index, E e) {
-        Node<E> pivot = getNode(index);
-        Node<E> pivotPrev = pivot.prev;
-
-        Node<E> newNode = new Node<>(pivotPrev, e, pivot);
-        pivotPrev.next = newNode;
-        pivot.prev = newNode;
-
-        size++;
-    }
 
     @Override
     public String toString() {
         if (size == 0) {
-            return "[]";
+            return Constant.EMPTY_LIST;
         }
-        StringBuilder builder = new StringBuilder("[");
+        StringBuilder builder = new StringBuilder(Constant.LIST_START);
 
         Node<E> current = first;
         if (current.next == null) {
@@ -354,7 +340,7 @@ public class MyLinkedList<E> implements MyList<E> {
         } else {
             writeElements(builder, current);
         }
-        builder.append("]");
+        builder.append(Constant.LIST_END);
         return builder.toString();
     }
 
@@ -363,7 +349,7 @@ public class MyLinkedList<E> implements MyList<E> {
             builder.append(current.element.toString());
 
             if (!isLast(current)) {
-                builder.append(",");
+                builder.append(Constant.SEPARATOR);
             }
             current = current.next;
         }
@@ -371,5 +357,26 @@ public class MyLinkedList<E> implements MyList<E> {
 
     private boolean isLast(Node<E> node) {
         return last == node;
+    }
+
+    private class LinkedListIter<E> extends IteratorImpl<E> implements MyIterator<E> {
+
+        LinkedListIter() {
+            super();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return cursor != null && cursor.prev != null;
+        }
+
+        @Override
+        public E previous() {
+            if (hasPrevious()) {
+                E element = (E) cursor.element;
+                cursor = cursor.prev;
+                return element;
+            } else throw new NoSuchElement();
+        }
     }
 }
